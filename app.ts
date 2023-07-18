@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import authRouter from './routes/authRoutes';
 import { IError } from './types/IError';
 import mongoose from 'mongoose';
+import tourRouter from './routes/tourRoutes';
 
 const app = express();
 
@@ -13,7 +14,7 @@ app.use(cors());
 
 config();
 
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
 const mongoDBURL = process.env.MONGODB_URL;
 
 app.use('/test', (req, res) => {
@@ -22,10 +23,14 @@ app.use('/test', (req, res) => {
 
 app.use('/auth', authRouter);
 
+app.use('/tour', tourRouter);
+
 app.use(
 	(error: IError, req: Request, res: Response, next: NextFunction): void => {
 		console.error(error.message);
-		res.status(error.code || 500).json({ message: error.message });
+		res
+			.status(error.code || 500)
+			.json({ message: error.message || 'Internal Server Error' });
 	},
 );
 

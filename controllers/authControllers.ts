@@ -11,29 +11,28 @@ export const login: RequestHandler = async (req, res, next) => {
 		return res.status(404).json({ message: 'User not found' });
 	}
 	await bcrypt.compare(password, user?.password);
-	res
-		.status(200)
-		.json({
-			message: 'Logged in successfully',
-			token: getToken(user._id.toString()),
-		});
+	res.status(200).json({
+		message: 'Logged in successfully',
+		token: getToken(user._id.toString()),
+	});
 };
 
 export const signup: RequestHandler = async (req, res, next) => {
 	try {
 		const { name, email, password } = req.body;
 		validatePassword(password);
-		const hashedPassword = await bcrypt.hash(
-			password,
-			process.env.BCRYPT_SALT!,
-		);
+		const hashedPassword = await bcrypt.hash(password, 10);
 		const user = new userModel({ name, email, password: hashedPassword });
 		await user.save();
 		res.status(200).json({
 			message: 'You have signed up successfully',
 			token: getToken(user._id.toString()),
 		});
-	} catch (error) {
+	} catch (error: any) {
+		if (error.code === 11000) {
+			error.code = 401;
+			error.message = 'Email entered is already exists';
+		}
 		next(error);
 	}
 };
